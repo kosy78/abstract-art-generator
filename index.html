@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abstract Art Generator</title>
+    <title>Animated Abstract Art Generator</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f3f4f6;
+            background-color: #000;
+            color: #fff;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -18,14 +19,13 @@
             box-sizing: border-box;
         }
         h1 {
-            color: #1f2937;
             font-size: 2.25rem;
             margin-bottom: 1rem;
         }
         #canvas {
-            background-color: black;
+            border: 1px solid #333;
             border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.06);
             max-width: 100%;
             height: auto;
         }
@@ -34,20 +34,27 @@
             padding: 0.75rem 1.5rem;
             font-size: 1rem;
             font-weight: 600;
-            color: white;
-            background-color: #4f46e5;
+            color: #000;
+            background-color: #fff;
             border: none;
             border-radius: 0.375rem;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.1s;
         }
         #createBtn:hover {
-            background-color: #4338ca;
+            background-color: #e0e0e0;
+        }
+        #createBtn:active {
+            transform: scale(0.98);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0); }
+            to { opacity: 1; transform: scale(1); }
         }
     </style>
 </head>
 <body>
-    <h1>Abstract Art Generator</h1>
+    <h1>Animated Abstract Art Generator</h1>
     <canvas id="canvas" width="800" height="600"></canvas>
     <button id="createBtn">Create</button>
 
@@ -56,19 +63,8 @@
         const ctx = canvas.getContext('2d');
         const createBtn = document.getElementById('createBtn');
 
-        function generateAbstractArt() {
-            ctx.fillStyle = 'black';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#f97316', '#ec4899', '#06b6d4'];
-
-            for (let i = 0; i < 100; i++) {
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * canvas.height;
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                const shape = Math.random() < 0.33 ? 'circle' : Math.random() < 0.66 ? 'square' : 'triangle';
-                const size = Math.random() * 40 + 10;
-
+        function drawShape(x, y, color, shape, size, delay) {
+            setTimeout(() => {
                 ctx.fillStyle = color;
                 ctx.beginPath();
 
@@ -84,6 +80,38 @@
                 }
 
                 ctx.fill();
+                
+                // Apply animation
+                ctx.globalAlpha = 0;
+                let start = null;
+                function animate(timestamp) {
+                    if (!start) start = timestamp;
+                    const progress = timestamp - start;
+                    ctx.globalAlpha = Math.min(progress / 500, 1);
+                    ctx.fill();
+                    if (progress < 500) {
+                        requestAnimationFrame(animate);
+                    }
+                }
+                requestAnimationFrame(animate);
+            }, delay);
+        }
+
+        function generateAbstractArt() {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#f97316', '#ec4899', '#06b6d4'];
+
+            for (let i = 0; i < 100; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const shape = Math.random() < 0.33 ? 'circle' : Math.random() < 0.66 ? 'square' : 'triangle';
+                const size = Math.random() * 40 + 10;
+                const delay = i * 20; // Stagger the animations
+
+                drawShape(x, y, color, shape, size, delay);
             }
         }
 
