@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Abstract Art Generator</title>
+    <title>Interactive Abstract Art Drawing</title>
     <style>
-        html, body {
+        * {
             margin: 0;
             padding: 0;
-            height: 100%;
+            box-sizing: border-box;
+        }
+        html, body {
             width: 100%;
+            height: 100%;
             overflow: hidden;
         }
         body {
@@ -20,39 +23,39 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            box-sizing: border-box;
-        }
-        h1 {
-            font-size: 2.25rem;
-            margin-bottom: 1rem;
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            white-space: nowrap;
         }
         #canvas {
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+        }
+        .instructions {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <h1>Move Cursor to Create Abstract Art</h1>
     <canvas id="canvas"></canvas>
+    <div class="instructions">Click and drag to draw abstract shapes</div>
 
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
 
-        let shapes = [];
-        let time = 0;
-        let lastCursorPosition = { x: 0, y: 0 };
-        let isCreatingShape = false;
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let hue = 0;
+        let direction = true;
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -62,119 +65,66 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        function drawAbstractShape(x, y, color, size, points, phase) {
-            ctx.fillStyle = color;
+        function draw(e) {
+            if (!isDrawing) return;
+            ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
+            ctx.lineWidth = Math.random() * 30 + 5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
             ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(e.clientX, e.clientY);
+            ctx.stroke();
 
-            for (let i = 0; i <= points; i++) {
-                const angle = (i / points) * Math.PI * 2;
-                const radius = size * (0.8 + Math.sin(angle * 3 + phase) * 0.2);
-                const px = x + Math.cos(angle) * radius;
-                const py = y + Math.sin(angle) * radius;
-                if (i === 0) {
-                    ctx.moveTo(px, py);
-                } else {
-                    ctx.lineTo(px, py);
-                }
+            [lastX, lastY] = [e.clientX, e.clientY];
+
+            hue++;
+            if (hue >= 360) {
+                hue = 0;
             }
 
-            ctx.closePath();
-            ctx.fill();
-        }
-
-        function createShape(x, y) {
-            const size = Math.random() * 30 + 20;
-            return {
-                x,
-                y,
-                baseSize: size,
-                size,
-                dx: (Math.random() - 0.5) * 1,
-                dy: (Math.random() - 0.5) * 1,
-                hue: Math.random() * 360,
-                saturation: 80 + Math.random() * 20,
-                lightness: 50 + Math.random() * 10,
-                points: Math.floor(Math.random() * 3) + 5,
-                phase: Math.random() * Math.PI * 2,
-                trail: [],
-                growthRate: Math.random() * 0.05 + 0.01,
-                growthFactor: 1,
-                maxGrowth: Math.random() * 2 + 2
-            };
-        }
-
-        function updateAndDrawShape(shape) {
-            time += 0.01;
-            shape.x += Math.sin(time * shape.dx) * 2;
-            shape.y += Math.cos(time * shape.dy) * 2;
-
-            shape.x = (shape.x + canvas.width) % canvas.width;
-            shape.y = (shape.y + canvas.height) % canvas.height;
-
-            shape.hue = (shape.hue + 0.5) % 360;
-            shape.phase += 0.05;
-            const currentColor = `hsl(${shape.hue}, ${shape.saturation}%, ${shape.lightness}%)`;
-
-            shape.growthFactor += shape.growthRate;
-            if (shape.growthFactor > shape.maxGrowth) {
-                shape.growthFactor = 1;
+            if (ctx.lineWidth >= 100 || ctx.lineWidth <= 1) {
+                direction = !direction;
             }
-            const currentSize = shape.baseSize * shape.growthFactor;
 
-            shape.trail.forEach((pos, index) => {
-                const alpha = 1 - index / shape.trail.length;
-                ctx.globalAlpha = alpha * 0.1;
-                drawAbstractShape(pos.x, pos.y, currentColor, currentSize * (1 - alpha * 0.5), shape.points, shape.phase);
-            });
-
-            ctx.globalAlpha = 1;
-            drawAbstractShape(shape.x, shape.y, currentColor, currentSize, shape.points, shape.phase);
-
-            shape.trail.unshift({x: shape.x, y: shape.y});
-            if (shape.trail.length > 15) shape.trail.pop();
-        }
-
-        function animate() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.03)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            shapes.forEach((shape, index) => {
-                updateAndDrawShape(shape);
-                if (shape.trail.length > 50) {
-                    shapes.splice(index, 1);
-                }
-            });
-
-            requestAnimationFrame(animate);
-        }
-
-        function startCreatingShape(e) {
-            isCreatingShape = true;
-            lastCursorPosition = { x: e.clientX, y: e.clientY };
-        }
-
-        function stopCreatingShape() {
-            isCreatingShape = false;
-        }
-
-        function createShapeOnMove(e) {
-            if (!isCreatingShape) return;
-
-            const currentPosition = { x: e.clientX, y: e.clientY };
-            const distance = Math.hypot(currentPosition.x - lastCursorPosition.x, currentPosition.y - lastCursorPosition.y);
-
-            if (distance > 20) {
-                shapes.push(createShape(currentPosition.x, currentPosition.y));
-                lastCursorPosition = currentPosition;
+            if (direction) {
+                ctx.lineWidth++;
+            } else {
+                ctx.lineWidth--;
             }
+
+            // Add glow effect
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
         }
 
-        canvas.addEventListener('mousedown', startCreatingShape);
-        canvas.addEventListener('mouseup', stopCreatingShape);
-        canvas.addEventListener('mouseleave', stopCreatingShape);
-        canvas.addEventListener('mousemove', createShapeOnMove);
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            [lastX, lastY] = [e.clientX, e.clientY];
+        });
 
-        animate();
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', () => isDrawing = false);
+        canvas.addEventListener('mouseout', () => isDrawing = false);
+
+        // Touch events for mobile devices
+        canvas.addEventListener('touchstart', (e) => {
+            isDrawing = true;
+            [lastX, lastY] = [e.touches[0].clientX, e.touches[0].clientY];
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            draw(e.touches[0]);
+        });
+
+        canvas.addEventListener('touchend', () => isDrawing = false);
+
+        // Optional: Double-click to clear the canvas
+        canvas.addEventListener('dblclick', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
     </script>
 </body>
 </html>
