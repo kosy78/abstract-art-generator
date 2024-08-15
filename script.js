@@ -8,6 +8,8 @@ let lastX = 0;
 let lastY = 0;
 let hue = 0;
 let direction = true;
+let paths = [];
+let currentPath = [];
 
 function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -23,34 +25,48 @@ function clearCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
+function drawSmoothLine(points, color, lineWidth) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+
+    for (let i = 1; i < points.length - 2; i++) {
+        const xc = (points[i].x + points[i + 1].x) / 2;
+        const yc = (points[i].y + points[i + 1].y) / 2;
+        ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+    }
+
+    if (points.length > 2) {
+        const last = points.length - 1;
+        ctx.quadraticCurveTo(points[last - 1].x, points[last - 1].y, points[last].x, points[last].y);
+    }
+
+    ctx.stroke();
+}
+
 function draw(e) {
     if (!isDrawing) return;
 
     const x = e.clientX || e.touches[0].clientX;
     const y = e.clientY || e.touches[0].clientY;
 
-    ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
+    currentPath.push({ x, y });
+
+    const color = `hsl(${hue}, 100%, 50%)`;
     ctx.lineWidth = direction ? ctx.lineWidth + 0.1 : ctx.lineWidth - 0.1;
 
     if (ctx.lineWidth > 50 || ctx.lineWidth < 1) {
         direction = !direction;
     }
 
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-
-    const midX = (lastX + x) / 2;
-    const midY = (lastY + y) / 2;
-    const controlX = midX + (Math.random() - 0.5) * 20;
-    const controlY = midY + (Math.random() - 0.5) * 20;
-    
-    ctx.quadraticCurveTo(controlX, controlY, x, y);
-    ctx.stroke();
+    drawSmoothLine(currentPath, color, ctx.lineWidth);
 
     ctx.shadowBlur = 15;
-    ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
-
-    [lastX, lastY] = [x, y];
+    ctx.shadowColor = color;
 
     hue += 2;
     if (hue >= 360) hue = 0;
@@ -58,12 +74,15 @@ function draw(e) {
 
 function startDrawing(e) {
     isDrawing = true;
+    currentPath = [];
     [lastX, lastY] = [e.clientX || e.touches[0].clientX, e.clientY || e.touches[0].clientY];
+    currentPath.push({ x: lastX, y: lastY });
 }
 
 function stopDrawing() {
     isDrawing = false;
     ctx.shadowBlur = 0;
+    paths.push(currentPath);
 }
 
 canvas.addEventListener('mousedown', startDrawing);
@@ -83,6 +102,7 @@ function resetCanvas() {
     hue = 0;
     direction = true;
     ctx.lineWidth = 1;
+    paths = [];
     
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
