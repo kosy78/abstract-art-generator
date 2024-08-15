@@ -98,24 +98,24 @@ canvas.addEventListener('touchmove', (e) => {
 canvas.addEventListener('touchend', stopDrawing);
 
 function resetCanvas() {
+    // Clear the canvas
     clearCanvas();
+    
+    // Reset all drawing parameters
     hue = 0;
     direction = true;
     ctx.lineWidth = 1;
     paths = [];
+    currentPath = [];
     
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const maxRadius = Math.hypot(centerX, centerY);
+    // Reset any other state variables
+    isDrawing = false;
+    lastX = 0;
+    lastY = 0;
     
-    for (let radius = 0; radius < maxRadius; radius += 5) {
-        setTimeout(() => {
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-            ctx.strokeStyle = `hsl(${Math.random() * 360}, 100%, 50%)`;
-            ctx.stroke();
-        }, radius * 2);
-    }
+    // Reset shadow effects
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
 }
 
 resetBtn.addEventListener('click', resetCanvas);
