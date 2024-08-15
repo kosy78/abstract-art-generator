@@ -7,48 +7,65 @@ let isDrawing = false;
 let lastX = 0;
 let lastY = 0;
 let hue = 0;
-let direction = true;
-let paths = [];
-let currentPath = [];
 
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    clearCanvas();
-    redrawPaths();
-}
-
-function clearCanvas() {
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-}
-
-function redrawPaths() {
-    paths.forEach(path => {
-        drawSmoothLine(path, `hsl(${hue}, 100%, 50%)`, ctx.lineWidth);
-        hue = (hue + 2) % 360;
-    });
 }
 
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// ... (rest of the code remains the same)
+function draw(e) {
+    if (!isDrawing) return;
+    const x = e.clientX || e.touches[0].clientX;
+    const y = e.clientY || e.touches[0].clientY;
 
-function resetCanvas() {
-    clearCanvas();
-    hue = 0;
-    direction = true;
-    ctx.lineWidth = 1;
-    paths = [];
-    currentPath = [];
-    isDrawing = false;
-    lastX = 0;
-    lastY = 0;
-    ctx.shadowBlur = 0;
-    ctx.shadowColor = 'transparent';
+    ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+
+    [lastX, lastY] = [x, y];
+
+    hue = (hue + 1) % 360;
 }
 
-// ... (rest of the code remains the same)
+function startDrawing(e) {
+    isDrawing = true;
+    [lastX, lastY] = [e.clientX || e.touches[0].clientX, e.clientY || e.touches[0].clientY];
+}
+
+function stopDrawing() {
+    isDrawing = false;
+}
+
+canvas.addEventListener('mousedown', startDrawing);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', stopDrawing);
+canvas.addEventListener('mouseout', stopDrawing);
+
+canvas.addEventListener('touchstart', startDrawing);
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    draw(e.touches[0]);
+});
+canvas.addEventListener('touchend', stopDrawing);
+
+resetBtn.addEventListener('click', resizeCanvas);
+
+downloadBtn.addEventListener('click', () => {
+    const link = document.createElement('a');
+    link.download = 'abstract-art.jpg';
+    link.href = canvas.toDataURL('image/jpeg');
+    link.click();
+});
 
 resizeCanvas();
