@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trippy Animated Abstract Art Generator</title>
+    <title>Trippy Moving Abstract Art Generator with Trails</title>
     <style>
         html, body {
             margin: 0;
@@ -55,7 +55,7 @@
     </style>
 </head>
 <body>
-    <h1>Trippy Animated Abstract Art Generator</h1>
+    <h1>Trippy Moving Abstract Art Generator with Trails</h1>
     <canvas id="canvas" width="800" height="600"></canvas>
     <button id="createBtn">Create</button>
 
@@ -64,21 +64,21 @@
         const ctx = canvas.getContext('2d');
         const createBtn = document.getElementById('createBtn');
 
+        let shapes = [];
+
         function drawAbstractShape(x, y, color, size) {
             ctx.fillStyle = color;
             ctx.beginPath();
 
-            // Create more abstract shapes
-            const points = Math.floor(Math.random() * 5) + 3; // 3 to 7 points
+            const points = Math.floor(Math.random() * 5) + 3;
             for (let i = 0; i < points; i++) {
                 const angle = (i / points) * Math.PI * 2;
-                const radius = size * (0.5 + Math.random() * 0.5); // Vary the radius
+                const radius = size * (0.5 + Math.random() * 0.5);
                 const px = x + Math.cos(angle) * radius;
                 const py = y + Math.sin(angle) * radius;
                 if (i === 0) {
                     ctx.moveTo(px, py);
                 } else {
-                    // Use quadratic curves for smoother shapes
                     const cpx = x + Math.cos(angle - Math.PI / points) * radius * 1.5;
                     const cpy = y + Math.sin(angle - Math.PI / points) * radius * 1.5;
                     ctx.quadraticCurveTo(cpx, cpy, px, py);
@@ -89,43 +89,74 @@
             ctx.fill();
         }
 
-        function animateShape(x, y, color, size) {
-            let scale = 0;
-            let alpha = 0;
-            let hue = parseInt(color.slice(1), 16);
+        function createShape(x, y, color, size) {
+            return {
+                x,
+                y,
+                color,
+                size,
+                dx: (Math.random() - 0.5) * 2,
+                dy: (Math.random() - 0.5) * 2,
+                hue: parseInt(color.slice(1), 16),
+                trail: []
+            };
+        }
 
-            function animate() {
-                ctx.globalAlpha = alpha;
-                const currentColor = `hsl(${hue % 360}, 100%, 50%)`;
-                drawAbstractShape(x, y, currentColor, size * scale);
+        function updateAndDrawShape(shape) {
+            // Update position
+            shape.x += shape.dx;
+            shape.y += shape.dy;
 
-                scale += 0.02;
-                alpha = Math.sin(scale * Math.PI);
-                hue += 2;
+            // Bounce off edges
+            if (shape.x < 0 || shape.x > canvas.width) shape.dx *= -1;
+            if (shape.y < 0 || shape.y > canvas.height) shape.dy *= -1;
 
-                if (scale <= 2) {
-                    requestAnimationFrame(animate);
-                }
-            }
+            // Update color
+            shape.hue = (shape.hue + 2) % 360;
+            const currentColor = `hsl(${shape.hue}, 100%, 50%)`;
 
-            animate();
+            // Draw trail
+            shape.trail.forEach((pos, index) => {
+                const alpha = 1 - index / shape.trail.length;
+                ctx.globalAlpha = alpha * 0.1;
+                drawAbstractShape(pos.x, pos.y, currentColor, shape.size * (1 - alpha * 0.5));
+            });
+
+            // Draw current shape
+            ctx.globalAlpha = 1;
+            drawAbstractShape(shape.x, shape.y, currentColor, shape.size);
+
+            // Update trail
+            shape.trail.unshift({x: shape.x, y: shape.y});
+            if (shape.trail.length > 20) shape.trail.pop();
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            shapes.forEach(updateAndDrawShape);
+
+            requestAnimationFrame(animate);
         }
 
         function generateAbstractArt() {
+            shapes = [];
             ctx.fillStyle = 'black';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
 
-            for (let i = 0; i < 50; i++) {
+            for (let i = 0; i < 20; i++) {
                 const x = Math.random() * canvas.width;
                 const y = Math.random() * canvas.height;
                 const color = colors[Math.floor(Math.random() * colors.length)];
-                const size = Math.random() * 60 + 20;
-                const delay = i * 100;
+                const size = Math.random() * 40 + 20;
 
-                setTimeout(() => animateShape(x, y, color, size), delay);
+                shapes.push(createShape(x, y, color, size));
             }
+
+            animate();
         }
 
         createBtn.addEventListener('click', generateAbstractArt);
