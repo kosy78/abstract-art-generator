@@ -4,76 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Satisfying Abstract Art Drawing</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #000;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        #canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-        .instructions {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 1.2rem;
-            text-align: center;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 5px;
-            pointer-events: none;
-        }
-        #resetBtn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background-color: rgba(255, 255, 255, 0.2);
-            border: 2px solid white;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            font-size: 24px;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-            transition: background-color 0.3s, transform 0.1s;
-        }
-        #resetBtn:hover {
-            background-color: rgba(255, 255, 255, 0.3);
-        }
-        #resetBtn:active {
-            transform: scale(0.95);
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <canvas id="canvas"></canvas>
     <div class="instructions">Click and drag to create satisfying abstract art</div>
     <button id="resetBtn" aria-label="Reset Canvas">↺</button>
-
-    <script>
-        // ... (The JavaScript code remains the same as in the previous version)
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
