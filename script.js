@@ -7,10 +7,16 @@ let lastX = 0;
 let lastY = 0;
 let hue = 0;
 let particles = [];
+let lineWidth = 2;
+let lastUpdateTime = 0;
+const targetFPS = 60;
+const frameTime = 1000 / targetFPS;
 
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 window.addEventListener('resize', resizeCanvas);
@@ -24,11 +30,17 @@ class Particle {
         this.size = size;
         this.alpha = 1;
         this.decay = Math.random() * 0.015 + 0.005;
+        this.velocity = {
+            x: (Math.random() - 0.5) * 2,
+            y: (Math.random() - 0.5) * 2
+        };
     }
 
     update() {
         this.alpha -= this.decay;
         this.size *= 0.95;
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
     }
 
     draw() {
@@ -53,25 +65,46 @@ function getBrushPoint(t, startX, startY, endX, endY, width) {
 function draw(e) {
     if (!isDrawing) return;
 
+    const currentTime = Date.now();
+    if (currentTime - lastUpdateTime < frameTime) return;
+    lastUpdateTime = currentTime;
+
     const x = e.clientX || e.touches[0].clientX;
     const y = e.clientY || e.touches[0].clientY;
 
-    const color = `hsl(${hue}, 100%, 50%)`;
-    const brushWidth = Math.random() * 20 + 10;
+    const baseColor = `hsl(${hue}, 100%, 50%)`;
+    const complementaryHue = (hue + 180) % 360;
+    const complementaryColor = `hsl(${complementaryHue}, 100%, 50%)`;
 
-    for (let t = 0; t < 1; t += 0.02) {
+    const brushWidth = Math.sin(Date.now() * 0.01) * 10 + 20; // Oscillating brush width
+
+    for (let t = 0; t < 1; t += 0.05) {
         const point = getBrushPoint(t, lastX, lastY, x, y, brushWidth);
         const size = Math.random() * 3 + 1;
+        const color = Math.random() > 0.5 ? baseColor : complementaryColor;
         particles.push(new Particle(point.x, point.y, color, size));
     }
+
+    // Draw main stroke
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = baseColor;
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'round';
+    ctx.stroke();
 
     [lastX, lastY] = [x, y];
 
     hue = (hue + 1) % 360;
+    lineWidth = Math.min(lineWidth + 0.1, 20); // Gradually increase line width
+
+    // Play sound effect
+    playDrawSound();
 }
 
 function animateParticles() {
-    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalCompositeOperation = 'screen';
 
     particles.forEach((particle, index) => {
         particle.update();
@@ -82,16 +115,73 @@ function animateParticles() {
         }
     });
 
+    ctx.globalCompositeOperation = 'source-over';
     requestAnimationFrame(animateParticles);
 }
 
 function startDrawing(e) {
     isDrawing = true;
+    lineWidth = 2; // Reset line width
     [lastX, lastY] = [e.clientX || e.touches[0].clientX, e.clientY || e.touches[0].clientY];
+    playStartSound();
 }
 
 function stopDrawing() {
     isDrawing = false;
+    playEndSound();
+}
+
+function playDrawSound() {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(440 + Math.random() * 220, audioContext.currentTime);
+    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.1);
+}
+
+function playStartSound() {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(440, audioContext.currentTime + 0.1);
+    gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.1);
+}
+
+function playEndSound() {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(220, audioContext.currentTime + 0.1);
+    gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.1);
 }
 
 canvas.addEventListener('mousedown', startDrawing);
@@ -107,18 +197,17 @@ canvas.addEventListener('touchmove', (e) => {
 canvas.addEventListener('touchend', stopDrawing);
 
 resetBtn.addEventListener('click', () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     particles = [];
     
-    // Add pulse effect
     resetBtn.classList.add('pulse');
     setTimeout(() => {
         resetBtn.classList.remove('pulse');
     }, 500);
 
-    // Create burst effect
-    const burstParticles = 20;
-    const burstRadius = 100;
+    const burstParticles = 50;
+    const burstRadius = 150;
     for (let i = 0; i < burstParticles; i++) {
         const angle = (i / burstParticles) * Math.PI * 2;
         const x = canvas.width / 2 + Math.cos(angle) * burstRadius;
@@ -126,9 +215,28 @@ resetBtn.addEventListener('click', () => {
         const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
         particles.push(new Particle(x, y, color, 5));
     }
+
+    playResetSound();
 });
 
-// Add hover effect
+function playResetSound() {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(220, audioContext.currentTime + 0.5);
+    gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.5);
+}
+
 resetBtn.addEventListener('mouseover', () => {
     const span = resetBtn.querySelector('span');
     span.style.transition = 'transform 0.5s ease';
