@@ -1,105 +1,40 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+/* ... (previous styles remain the same) ... */
 
-html, body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background-color: #000;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-#canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-}
-
-.instructions {
+#resetBtn,
+#downloadBtn {
     position: absolute;
     top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 1.2rem;
-    text-align: center;
-    background-color: rgba(0, 0, 0, 0.5);
-    padding: 10px;
-    border-radius: 5px;
-    pointer-events: none;
-}
-
-#resetBtn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
     background-color: rgba(255, 255, 255, 0.1);
     border: 2px solid rgba(255, 255, 255, 0.5);
     border-radius: 50%;
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     cursor: pointer;
-    font-size: 28px;
+    font-size: 24px;
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 10;
-    overflow: hidden;
     transition: all 0.3s ease;
 }
 
-#resetBtn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
+#resetBtn {
+    right: 80px;
 }
 
-#resetBtn span {
-    display: inline-block;
-    transition: transform 0.3s ease;
+#downloadBtn {
+    right: 20px;
 }
 
-#resetBtn:hover {
+#resetBtn:hover,
+#downloadBtn:hover {
     background-color: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
 }
 
-#resetBtn:hover::before {
-    opacity: 1;
-}
-
-#resetBtn:hover span {
-    transform: rotate(180deg);
-}
-
-#resetBtn:active {
+#resetBtn:active,
+#downloadBtn:active {
     transform: scale(0.95);
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-.pulse {
-    animation: pulse 0.5s ease-in-out;
 }
