@@ -1,40 +1,72 @@
-/* ... (previous styles remain the same) ... */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
 
-#resetBtn,
-#downloadBtn {
-    position: absolute;
-    top: 20px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    cursor: pointer;
-    font-size: 24px;
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: black;
     color: white;
+}
+
+.absolute {
+    position: absolute;
+}
+
+.top-0 {
+    top: 0;
+}
+
+.left-0 {
+    left: 0;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.h-full {
+    height: 100%;
+}
+
+.instructions {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+}
+
+.button-container {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-    transition: all 0.3s ease;
+    gap: 0.5rem;
 }
 
-#resetBtn {
-    right: 80px;
+.icon-button {
+    padding: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
-#downloadBtn {
-    right: 20px;
-}
-
-#resetBtn:hover,
-#downloadBtn:hover {
+.icon-button:hover {
     background-color: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.8);
-    transform: scale(1.1);
 }
 
-#resetBtn:active,
-#downloadBtn:active {
-    transform: scale(0.95);
+.icon-button svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    stroke: white;
 }
