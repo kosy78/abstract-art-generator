@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animated Abstract Art Generator</title>
+    <title>Trippy Animated Abstract Art Generator</title>
     <style>
         html, body {
             margin: 0;
@@ -52,14 +52,10 @@
         #createBtn:active {
             transform: scale(0.98);
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0); }
-            to { opacity: 1; transform: scale(1); }
-        }
     </style>
 </head>
 <body>
-    <h1>Animated Abstract Art Generator</h1>
+    <h1>Trippy Animated Abstract Art Generator</h1>
     <canvas id="canvas" width="800" height="600"></canvas>
     <button id="createBtn">Create</button>
 
@@ -68,55 +64,67 @@
         const ctx = canvas.getContext('2d');
         const createBtn = document.getElementById('createBtn');
 
-        function drawShape(x, y, color, shape, size, delay) {
-            setTimeout(() => {
-                ctx.fillStyle = color;
-                ctx.beginPath();
+        function drawAbstractShape(x, y, color, size) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
 
-                if (shape === 'circle') {
-                    ctx.arc(x, y, size, 0, Math.PI * 2);
-                } else if (shape === 'square') {
-                    ctx.rect(x - size, y - size, size * 2, size * 2);
+            // Create more abstract shapes
+            const points = Math.floor(Math.random() * 5) + 3; // 3 to 7 points
+            for (let i = 0; i < points; i++) {
+                const angle = (i / points) * Math.PI * 2;
+                const radius = size * (0.5 + Math.random() * 0.5); // Vary the radius
+                const px = x + Math.cos(angle) * radius;
+                const py = y + Math.sin(angle) * radius;
+                if (i === 0) {
+                    ctx.moveTo(px, py);
                 } else {
-                    ctx.moveTo(x, y - size);
-                    ctx.lineTo(x - size, y + size);
-                    ctx.lineTo(x + size, y + size);
-                    ctx.closePath();
+                    // Use quadratic curves for smoother shapes
+                    const cpx = x + Math.cos(angle - Math.PI / points) * radius * 1.5;
+                    const cpy = y + Math.sin(angle - Math.PI / points) * radius * 1.5;
+                    ctx.quadraticCurveTo(cpx, cpy, px, py);
                 }
+            }
 
-                ctx.fill();
-                
-                // Apply animation
-                ctx.globalAlpha = 0;
-                let start = null;
-                function animate(timestamp) {
-                    if (!start) start = timestamp;
-                    const progress = timestamp - start;
-                    ctx.globalAlpha = Math.min(progress / 500, 1);
-                    ctx.fill();
-                    if (progress < 500) {
-                        requestAnimationFrame(animate);
-                    }
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function animateShape(x, y, color, size) {
+            let scale = 0;
+            let alpha = 0;
+            let hue = parseInt(color.slice(1), 16);
+
+            function animate() {
+                ctx.globalAlpha = alpha;
+                const currentColor = `hsl(${hue % 360}, 100%, 50%)`;
+                drawAbstractShape(x, y, currentColor, size * scale);
+
+                scale += 0.02;
+                alpha = Math.sin(scale * Math.PI);
+                hue += 2;
+
+                if (scale <= 2) {
+                    requestAnimationFrame(animate);
                 }
-                requestAnimationFrame(animate);
-            }, delay);
+            }
+
+            animate();
         }
 
         function generateAbstractArt() {
             ctx.fillStyle = 'black';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#f97316', '#ec4899', '#06b6d4'];
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
 
-            for (let i = 0; i < 100; i++) {
+            for (let i = 0; i < 50; i++) {
                 const x = Math.random() * canvas.width;
                 const y = Math.random() * canvas.height;
                 const color = colors[Math.floor(Math.random() * colors.length)];
-                const shape = Math.random() < 0.33 ? 'circle' : Math.random() < 0.66 ? 'square' : 'triangle';
-                const size = Math.random() * 40 + 10;
-                const delay = i * 20; // Stagger the animations
+                const size = Math.random() * 60 + 20;
+                const delay = i * 100;
 
-                drawShape(x, y, color, shape, size, delay);
+                setTimeout(() => animateShape(x, y, color, size), delay);
             }
         }
 
