@@ -1,6 +1,7 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const resetBtn = document.getElementById('resetBtn');
+const downloadBtn = document.getElementById('downloadBtn');
 
 let isDrawing = false;
 let lastX = 0;
@@ -11,6 +12,10 @@ let direction = true;
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    clearCanvas();
+}
+
+function clearCanvas() {
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
@@ -34,7 +39,6 @@ function draw(e) {
     ctx.beginPath();
     ctx.moveTo(lastX, lastY);
 
-    // Create a curved line for more organic feel
     const midX = (lastX + x) / 2;
     const midY = (lastY + y) / 2;
     const controlX = midX + (Math.random() - 0.5) * 20;
@@ -43,7 +47,6 @@ function draw(e) {
     ctx.quadraticCurveTo(controlX, controlY, x, y);
     ctx.stroke();
 
-    // Add a glow effect
     ctx.shadowBlur = 15;
     ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
 
@@ -60,7 +63,7 @@ function startDrawing(e) {
 
 function stopDrawing() {
     isDrawing = false;
-    ctx.shadowBlur = 0; // Reset shadow when not drawing
+    ctx.shadowBlur = 0;
 }
 
 canvas.addEventListener('mousedown', startDrawing);
@@ -75,11 +78,12 @@ canvas.addEventListener('touchmove', (e) => {
 });
 canvas.addEventListener('touchend', stopDrawing);
 
-resetBtn.addEventListener('click', () => {
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+function resetCanvas() {
+    clearCanvas();
+    hue = 0;
+    direction = true;
+    ctx.lineWidth = 1;
     
-    // Cool reset effect
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     const maxRadius = Math.hypot(centerX, centerY);
@@ -92,10 +96,17 @@ resetBtn.addEventListener('click', () => {
             ctx.stroke();
         }, radius * 2);
     }
-});
+}
 
-// Simple button hover effect
-resetBtn.addEventListener('mouseover', () => resetBtn.style.transform = 'scale(1.1)');
-resetBtn.addEventListener('mouseout', () => resetBtn.style.transform = 'scale(1)');
+resetBtn.addEventListener('click', resetCanvas);
+
+function downloadCanvas() {
+    const link = document.createElement('a');
+    link.download = 'abstract-art.jpg';
+    link.href = canvas.toDataURL('image/jpeg');
+    link.click();
+}
+
+downloadBtn.addEventListener('click', downloadCanvas);
 
 resizeCanvas();
