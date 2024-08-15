@@ -1,6 +1,10 @@
-body, html {
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
     width: 100%;
     height: 100%;
     overflow: hidden;
@@ -10,25 +14,16 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background-color: black;
     color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.absolute {
+#canvas {
     position: absolute;
-}
-
-.top-0 {
     top: 0;
-}
-
-.left-0 {
     left: 0;
-}
-
-.w-full {
     width: 100%;
-}
-
-.h-full {
     height: 100%;
 }
 
@@ -37,11 +32,12 @@ body {
     top: 1rem;
     left: 50%;
     transform: translateX(-50%);
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(255, 255, 255, 0.1);
     color: white;
     padding: 0.5rem 1rem;
     border-radius: 9999px;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
+    z-index: 10;
 }
 
 .button-container {
@@ -50,15 +46,21 @@ body {
     right: 1rem;
     display: flex;
     gap: 0.5rem;
+    z-index: 10;
 }
 
 .icon-button {
-    padding: 0.5rem;
+    padding: 0.25rem;
     background-color: rgba(255, 255, 255, 0.1);
     border: none;
-    border-radius: 9999px;
+    border-radius: 50%;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 2rem;
+    height: 2rem;
 }
 
 .icon-button:hover {
@@ -66,7 +68,7 @@ body {
 }
 
 .icon-button svg {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1rem;
+    height: 1rem;
     stroke: white;
 }
