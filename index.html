@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Satisfying Abstract Art Generator with Fluid Motions</title>
+    <title>Abstract Art Generator with Randomly Growing Shapes</title>
     <style>
         html, body {
             margin: 0;
@@ -55,7 +55,7 @@
     </style>
 </head>
 <body>
-    <h1>Satisfying Abstract Art Generator with Fluid Motions</h1>
+    <h1>Abstract Art Generator with Randomly Growing Shapes</h1>
     <canvas id="canvas" width="800" height="600"></canvas>
     <button id="createBtn">Create</button>
 
@@ -92,6 +92,7 @@
                 x,
                 y,
                 color,
+                baseSize: size,
                 size,
                 dx: (Math.random() - 0.5) * 1,
                 dy: (Math.random() - 0.5) * 1,
@@ -100,7 +101,10 @@
                 lightness: 50 + Math.random() * 10,
                 points: Math.floor(Math.random() * 3) + 5,
                 phase: Math.random() * Math.PI * 2,
-                trail: []
+                trail: [],
+                growthRate: Math.random() * 0.05 + 0.01,
+                growthFactor: 1,
+                maxGrowth: Math.random() * 2 + 2 // Maximum growth factor between 2 and 4
             };
         }
 
@@ -119,19 +123,23 @@
             shape.phase += 0.05;
             const currentColor = `hsl(${shape.hue}, ${shape.saturation}%, ${shape.lightness}%)`;
 
-            // Pulsate size
-            const pulsatedSize = shape.size * (1 + Math.sin(time * 2) * 0.1);
+            // Update size with growth
+            shape.growthFactor += shape.growthRate;
+            if (shape.growthFactor > shape.maxGrowth) {
+                shape.growthFactor = 1;
+            }
+            const currentSize = shape.baseSize * shape.growthFactor;
 
             // Draw trail
             shape.trail.forEach((pos, index) => {
                 const alpha = 1 - index / shape.trail.length;
                 ctx.globalAlpha = alpha * 0.1;
-                drawAbstractShape(pos.x, pos.y, currentColor, pulsatedSize * (1 - alpha * 0.5), shape.points, shape.phase);
+                drawAbstractShape(pos.x, pos.y, currentColor, currentSize * (1 - alpha * 0.5), shape.points, shape.phase);
             });
 
             // Draw current shape
             ctx.globalAlpha = 1;
-            drawAbstractShape(shape.x, shape.y, currentColor, pulsatedSize, shape.points, shape.phase);
+            drawAbstractShape(shape.x, shape.y, currentColor, currentSize, shape.points, shape.phase);
 
             // Update trail
             shape.trail.unshift({x: shape.x, y: shape.y});
